@@ -1,25 +1,26 @@
-import pandas as pd
-import numpy as np
-import requests
+"""jokes script
+"""
 import json
-file = open('ID.csv')
-csvreader = csv.reader(file)
-rows = []
+import requests
+import os
+from twilio.rest import Client
 
-for row in csvreader:
-        rows.append(row)
-rows = rows[1:]
-jokes = []
-id_array = []
-for list_index in rows:
-    id = list_index[0]
-    id_array.append(id)
-    url = "http://api.icndb.com/jokes/{}".format(id)
-    response = requests.get(url)
-    joke_dict = json.loads(response.content.decode('utf-8'))
-    joke = joke_dict["value"]["joke"]
-    print(joke)
-    jokes.append(joke)
-combined = np.vstack((id_array, jokes)).T
-df=pd.DataFrame(combined, columns=['ID', 'Jokes']) 
-df.to_csv("submission.csv", index=False)
+url = "https://api.chucknorris.io/jokes/random"
+response = requests.get(url, timeout=10)
+joke_dict = json.loads(response.text)
+joke = joke_dict["value"]
+print(joke)
+
+# Find your Account SID and Auth Token at twilio.com/console
+# and set the environment variables. See http://twil.io/secure
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+auth_token = os.environ['TWILIO_AUTH_TOKEN']
+client = Client(account_sid, auth_token)
+
+message = client.messages.create(
+                              body=joke,
+                              from_='whatsapp:+14155238886',
+                              to='whatsapp:+919711026442'
+                          )
+
+print(message.sid)
